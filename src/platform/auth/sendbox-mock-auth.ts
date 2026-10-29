@@ -4,12 +4,11 @@
  */
 
 export type SendboxRole =
+  | "super_admin"
   | "admin"
-  | "readonly"
-  | "seller"
-  | "salon_manager"
-  | "company_admin"
-  | "super_admin";
+  | "editor"
+  | "creator"
+  | "reader";
 
 export interface SendboxTestUser {
   role: SendboxRole;
@@ -18,12 +17,11 @@ export interface SendboxTestUser {
 }
 
 export const SENDBOX_TEST_USERS: SendboxTestUser[] = [
-  { role: "admin", telegramId: "900000001", name: "Sendbox Admin" },
-  { role: "readonly", telegramId: "900000002", name: "Sendbox Viewer" },
-  { role: "seller", telegramId: "900000003", name: "Test Seller One" },
-  { role: "salon_manager", telegramId: "900000004", name: "Salon Manager Test" },
-  { role: "company_admin", telegramId: "900000005", name: "Company Admin Test" },
-  { role: "super_admin", telegramId: "900000006", name: "Super Admin Test" },
+  { role: "super_admin", telegramId: "900000001", name: "Super Admin Test" },
+  { role: "admin", telegramId: "900000002", name: "Sendbox Admin" },
+  { role: "editor", telegramId: "900000003", name: "Test Editor" },
+  { role: "creator", telegramId: "900000004", name: "Test Creator" },
+  { role: "reader", telegramId: "900000005", name: "Sendbox Reader" },
 ];
 
 export function isSendboxMockAuth(): boolean {

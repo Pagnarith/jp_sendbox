@@ -53,28 +53,61 @@ export default function SendboxHomePage() {
       </section>
 
       <section className="max-w-4xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <h2 className="text-xl font-semibold mb-4">Health Simulator</h2>
-        <p className="text-slate-600 text-sm mb-4">
-          Control what <code className="bg-slate-100 px-1 rounded">/api/health/live</code> returns to test failover scenarios.
+        <h2 className="text-xl font-semibold mb-4">Network Failover Simulator</h2>
+        <p className="text-slate-600 text-sm mb-6">
+          Toggle Live and Cloud states independently to visually verify soft-switch failover behavior.
+          The active API base indicator below updates in real time as you toggle states.
         </p>
-        <div className="flex flex-wrap gap-2">
-          {["healthy", "updating", "live-down", "prefer-cloud", "cloud-down", "version-mismatch"].map(
-            (state) => (
+
+        {/* Visual Network Topology */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <NetworkNode
+            label="Live Mini Server"
+            states={[
+              { id: "healthy", label: "ON", color: "bg-emerald-500" },
+              { id: "updating", label: "UPDATING", color: "bg-amber-500" },
+              { id: "live-down", label: "OFF", color: "bg-red-500" },
+            ]}
+            endpoint="/api/sendbox/health-control"
+          />
+          <NetworkNode
+            label="Cloud VPS"
+            states={[
+              { id: "healthy", label: "ON", color: "bg-emerald-500" },
+              { id: "cloud-down", label: "OFF", color: "bg-red-500" },
+              { id: "version-mismatch", label: "VERSION LAG", color: "bg-orange-500" },
+            ]}
+            endpoint="/api/sendbox/health-control"
+          />
+        </div>
+
+        {/* Quick Scenario Buttons */}
+        <div className="border-t border-slate-100 pt-4">
+          <h3 className="text-sm font-medium text-slate-500 mb-3">Quick Scenarios</h3>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { label: "All Healthy", state: "healthy" },
+              { label: "Live Down → Cloud Failover", state: "live-down" },
+              { label: "Prefer Cloud (Drain)", state: "prefer-cloud" },
+              { label: "Fast Ship (Updating)", state: "updating" },
+              { label: "Cloud Unreachable", state: "cloud-down" },
+              { label: "Version Mismatch", state: "version-mismatch" },
+            ].map((scenario) => (
               <button
-                key={state}
+                key={scenario.label}
                 onClick={() =>
                   fetch("/api/sendbox/health-control", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ state }),
+                    body: JSON.stringify({ state: scenario.state }),
                   }).then(() => window.location.reload())
                 }
-                className="px-3 py-1.5 text-sm rounded-md border border-slate-300 hover:bg-slate-100 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium rounded-md border border-slate-300 hover:bg-slate-100 hover:border-slate-400 transition-all"
               >
-                {state}
+                {scenario.label}
               </button>
-            )
-          )}
+            ))}
+          </div>
         </div>
       </section>
     </main>
@@ -90,5 +123,38 @@ function StatCard({ label, value, href }: { label: string; value: number; href: 
       <div className="text-slate-500 text-sm font-medium">{label}</div>
       <div className="text-3xl font-bold mt-1">{value}</div>
     </Link>
+  );
+}
+
+function NetworkNode({
+  label,
+  states,
+  endpoint,
+}: {
+  label: string;
+  states: { id: string; label: string; color: string }[];
+  endpoint: string;
+}) {
+  return (
+    <div className="rounded-lg border border-slate-200 p-4">
+      <div className="text-sm font-semibold text-slate-700 mb-3">{label}</div>
+      <div className="flex gap-2">
+        {states.map((s) => (
+          <button
+            key={s.id}
+            onClick={() =>
+              fetch(endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ state: s.id }),
+              }).then(() => window.location.reload())
+            }
+            className={`flex-1 py-2 text-xs font-bold text-white rounded-md ${s.color} hover:opacity-90 transition-opacity`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
